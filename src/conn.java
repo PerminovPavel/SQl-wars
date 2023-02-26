@@ -1,3 +1,5 @@
+
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.sql.*;
@@ -8,6 +10,8 @@ public class conn {
     public static Connection conn;
     public static Statement statmt;
     public static ResultSet resSet;
+
+
 
 
 
@@ -26,11 +30,12 @@ public class conn {
     public static void CreateDB() throws SQLException {
         {
             statmt = conn.createStatement();
-            statmt.execute("CREATE TABLE if not exists 'types' ('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'type' text not null);");
+            statmt.execute("CREATE TABLE if not exists 'cats' ('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'type' text not null);");
 
-            System.out.println("Таблица создана или уже существует.");
+            System.out.println("Таблица 'types' создана или уже существует.");
         }
     }
+
     public static void WriteDB() throws SQLException
     {
         statmt.execute("INSERT INTO 'users' ('name', 'phone') VALUES ('Petya', 125453); ");
@@ -66,7 +71,7 @@ public class conn {
     }
 
     public static void insert_type(String inString) throws SQLException {
-        statmt.execute(inString);
+        statmt.execute("INSERT INTO 'types' ('type') VALUES ('"+inString+"');");
 
     }
 
@@ -150,7 +155,7 @@ public class conn {
         while(resSet.next())
         {
             int id = resSet.getInt("id");
-            String  type = resSet.getString("type");
+            String type = resSet.getString("type");
 
             System.out.println( "ID = " + id );
             System.out.println( "type = " + type );
@@ -158,6 +163,64 @@ public class conn {
             System.out.println();
         }
     }
+
+    public static void createDBCats() throws SQLException {
+        {
+            statmt = conn.createStatement();
+            statmt.execute("CREATE TABLE if not exists cats (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(20) NOT NULL, type_id INTEGER NOT NULL, age INTEGER NOT NULL, weight DOUBLE," +
+                    "FOREIGN KEY(type_id) REFERENCES types (id))");
+
+            System.out.println("Таблица 'cats' создана или уже существует.");
+        }
+    }
+
+    public static void insert_cat(String name, String type, int age, Double weight) throws SQLException {
+
+
+
+        resSet = statmt.executeQuery("SELECT * FROM types");
+        boolean isTypeIn = false;
+
+        while(resSet.next())
+        {
+            {
+                String type1 = resSet.getString("type");
+                if(type.equals(type1)) isTypeIn = true;
+            }
+
+        }
+
+        if (!isTypeIn) {
+            insert_type(type);
+            int id = getType(type);
+
+            statmt.execute("INSERT INTO 'cats' ('name','type_id','age','weight') " +
+                    "VALUES ('" + name + "'," + id + "," + age + "," + weight + ")");
+
+        } else {
+
+            int id = getType(type);
+            statmt.execute("INSERT INTO 'cats' ('name','type_id','age','weight') " +
+                    "VALUES ('" + name + "'," + id + "," + age + "," + weight + ")");
+        }
+
+
+        System.out.println(isTypeIn?"Добавлена только кошка":"Породы "+ type +" еще не было!");
+    }
+
+
+
+    public static int getType(String s) throws SQLException {
+        resSet = statmt.executeQuery("SELECT id FROM types where type = '" + s + "'");
+
+        int id = resSet.getInt("id");
+
+        return id;
+
+
+    }
+
+
 }
 
 
